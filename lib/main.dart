@@ -1,4 +1,5 @@
 import 'package:animations/animations.dart';
+import 'package:flutter_demo/animated_search_bar/animated_search_bar.dart';
 import 'package:flutter_demo/bubble_loading/bubble_loading_app.dart';
 import 'package:flutter_demo/message_animation/message_animation_app.dart';
 import 'package:flutter_demo/music_app/music_app.dart';
@@ -109,6 +110,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   ));
                 },
                 child: Text('music app'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => AnimatedSearchBar(),
+                  ));
+                },
+                child: Text('Animated search bar'),
               ),
               ElevatedButton(
                 onPressed: () {
