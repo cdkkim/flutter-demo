@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:animations/animations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_demo/things/search_icon_painter.dart';
 import 'package:provider/provider.dart';
 
@@ -17,11 +18,11 @@ class ThingsApp extends StatefulWidget {
 
 class _ThingsAppState extends State<ThingsApp> with SingleTickerProviderStateMixin {
   List<TodoItem> todos = [];
-  // ThingsState state = ThingsState();
   ScrollController scrollController = ScrollController();
   late AnimationController animationController;
   bool showHighlight = true;
   bool displaySearchWidget = false;
+  bool vibrated = false;
 
   @override
   void initState() {
@@ -30,9 +31,6 @@ class _ThingsAppState extends State<ThingsApp> with SingleTickerProviderStateMix
       todos.add(TodoItem('$index'));
     });
     animationController = AnimationController(vsync: this);
-    // scrollController.addListener(() {
-    //   setState(() {});
-    // });
   }
 
   @override
@@ -60,10 +58,33 @@ class _ThingsAppState extends State<ThingsApp> with SingleTickerProviderStateMix
         ),
         body: Stack(
           children: [
-            if (scrollController.positions.isNotEmpty)
-              CustomPaint(
-                painter: SearchIconPainter(scrollController.offset),
-              ),
+            AnimatedBuilder(
+              animation: scrollController,
+              builder: (context, child) {
+                if (scrollController.positions.isEmpty) {
+                  return Container();
+                }
+                int threshold = 80;
+                if (scrollController.offset <= -threshold) {
+                  if (!vibrated) {
+                    HapticFeedback.mediumImpact();
+                    vibrated = true;
+                    displaySearchWidget = true;
+                  }
+                }
+                if (scrollController.offset > -threshold) {
+                  vibrated = false;
+                  displaySearchWidget = false;
+                }
+                return CustomPaint(
+                  painter: SearchIconPainter(
+                    progress: scrollController.offset,
+                    threshold: threshold,
+                  ),
+                  size: MediaQuery.of(context).size,
+                );
+              },
+            ),
             SingleChildScrollView(
               controller: scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
@@ -132,17 +153,6 @@ class _ThingsAppState extends State<ThingsApp> with SingleTickerProviderStateMix
                 ],
               ),
             ),
-            // if (displaySearchWidget)
-            //   Positioned(
-            //     bottom: 10,
-            //     child: Row(
-            //       children: const [
-            //         Text('move'),
-            //         Icon(CupertinoIcons.trash),
-            //         Icon(Icons.more_horiz_rounded),
-            //       ],
-            //     ),
-            //   ),
             if (displaySearchWidget) searchWidget(),
           ],
         ),
